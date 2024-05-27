@@ -36,8 +36,8 @@ function Monster.getSummonStatus(self)
 		abilities = abilities:sub(1, -3)
 	else
 		abilities = "No abilities"
-		output = output .. "\nAbility:\n" .. abilities
 	end
+	output = output .. "\nAbility:\n" .. abilities
 
 	return output
 end
@@ -64,7 +64,7 @@ function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 		end
 
 		local monsterStatus = target:getSummonStatus()
-		player:showTextDialog(pokedexId, monsterStatus)
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, monsterStatus)
 		return true
 	end
 
