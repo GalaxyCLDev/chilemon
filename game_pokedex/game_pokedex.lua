@@ -7,8 +7,6 @@ Painel = {
 		['pnlHabilidades'] = "",		
 	}
 }
-openedDex = {}
-dexMax = 0
 
 function init()
 	connect(g_game, { onTextMessage = onTextMessage, onGameEnd = hide })
@@ -54,10 +52,11 @@ function onTextMessage(mode, text)
 	if name and type then 
 		showPokedex()
 		
+		local level = text:match('Level: (.-)\n')
 		local requiredLevel = text:match('Required level: (.-)\n')
-		local evoDesc = text:match('\nEvolutions:\n(.-)\n')
-		local moves = text:match('\nMoves:\n(.-)\nAbility:')
-		local ability = text:sub(text:find('Ability:\n') + 9, #text)
+		local evoDesc = text:match('Evolutions:\n(.-)\nMoves:')
+		local moves = text:match('Moves:\n(.-)\nAbility:')
+		local ability = text:match('Ability:\n(.*)')
 		
 		pokedexWindow:getChildById('lblPokeName'):setText(name)
 		if name:find("Shiny") then
@@ -73,9 +72,9 @@ function onTextMessage(mode, text)
 			pokedexWindow:getChildById('imgPokemon'):setImage("/game_pokedex/imagens/pokemons/"..name..".png")
 		end
 
-		Painel.pokedex["pnlDescricao"] = "Type: "..type.."\nRequired Level: "..requiredLevel.."\n\nEvolutions:\n"..evoDesc
-		Painel.pokedex["pnlAtaques"] = moves
-		Painel.pokedex["pnlHabilidades"] = ability
+		Painel.pokedex["pnlDescricao"] = "Type: "..type.."\nLevel: "..level.."\nRequired Level: "..requiredLevel.."\n\nEvolutions:\n"..(evoDesc or "No evolutions")
+		Painel.pokedex["pnlAtaques"] = moves or "No moves"
+		Painel.pokedex["pnlHabilidades"] = ability or "No abilities"
 		Painel.show('pnlDescricao')
 	end
 end
