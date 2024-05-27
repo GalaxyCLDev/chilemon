@@ -1,7 +1,5 @@
---Design
 pokedexWindow = nil
 
---functions
 Painel = {
 	pokedex = {
 		['pnlDescricao'] = "",
@@ -13,7 +11,7 @@ openedDex = {}
 dexMax = 0
 
 function init()
-	connect(g_game, { onEditText = showPokemonDescription, onGameEnd = hide } )
+	connect(g_game, { onTextMessage = onTextMessage, onGameEnd = hide })
 end
 
 function showPokedex()
@@ -24,11 +22,13 @@ function showPokedex()
 end
 
 function terminate()
-	disconnect(g_game, { onEditText = showPokemonDescription, onGameEnd = hide } )
+	disconnect(g_game, { onTextMessage = onTextMessage, onGameEnd = hide })
 end
 
 function hide()
-	pokedexWindow:destroy()
+	if pokedexWindow then
+		pokedexWindow:destroy()
+	end
 end
 
 function Painel.show(childName)	
@@ -43,45 +43,37 @@ function Painel.show(childName)
 	pokedexWindow:getChildById('scrHabilidades'):setVisible(false)
 	
 	pokedexWindow:getChildById(childName):setVisible(true)
-	pokedexWindow:getChildById('scr'..childName:sub(4,#childName)):setVisible(true)
-	
+	pokedexWindow:getChildById('scr'..childName:sub(4, #childName)):setVisible(true)
 end
 
-
-
-function showPokemonDescription(id, itemId, maxLength, texto, writter, time)
-	if not g_game.isOnline() then return end	--Se nao estiver online
-	local name = texto:match('Name: (.-)\n')
-	local type = texto:match('Type: (.-)\n')
-	--Se for chamada de pokedex
+function onTextMessage(mode, text)
+	if not g_game.isOnline() then return end
+	
+	local name = text:match('Name: (.-)\n')
+	local type = text:match('Type: (.-)\n')
 	if name and type then 
 		showPokedex()
 		
-		--Required Level
-		local requieredLevel = texto:match('Required level: (.-)\n')
-		
-		--Evolution Description
-		local evoDesc = texto:match('\nEvolutions:\n(.-)\n')
-		
-		--MOVES
-		local moves = texto:match('\nMoves:\n(.-)\nAbility:')
-		
-		--Ability
-		local ability = texto:sub(texto:find('Ability:\n')+9,#texto)
+		local requiredLevel = text:match('Required level: (.-)\n')
+		local evoDesc = text:match('\nEvolutions:\n(.-)\n')
+		local moves = text:match('\nMoves:\n(.-)\nAbility:')
+		local ability = text:sub(text:find('Ability:\n') + 9, #text)
 		
 		pokedexWindow:getChildById('lblPokeName'):setText(name)
 		if name:find("Shiny") then
-			name = name:sub(7,#name)
+			name = name:sub(7, #name)
 			pokedexWindow:getChildById('lblPokeName'):setColor("red")
 		end
-		local f = io.open("modules/game_pokedex/imagens/pokemons/"..name..".png","r");
+		
+		local f = io.open("modules/game_pokedex/imagens/pokemons/"..name..".png", "r")
 		if not f then
 			print("Not found poke image called "..name)
 		else
 			f:close()
 			pokedexWindow:getChildById('imgPokemon'):setImage("/game_pokedex/imagens/pokemons/"..name..".png")
 		end
-		Painel.pokedex["pnlDescricao"] = "Tipo: "..type.."\nNivel Requerido: "..requieredLevel.."\n\nEvolucoes:\n"..evoDesc
+
+		Painel.pokedex["pnlDescricao"] = "Type: "..type.."\nRequired Level: "..requiredLevel.."\n\nEvolutions:\n"..evoDesc
 		Painel.pokedex["pnlAtaques"] = moves
 		Painel.pokedex["pnlHabilidades"] = ability
 		Painel.show('pnlDescricao')
